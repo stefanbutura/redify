@@ -54,11 +54,18 @@ class Redify {
     $clockify_api = new ClockifyApi($clockify_key);
     $clockify_entry_id = $this->database->getClockifyId($redmine_entry_id);
     if (!empty($clockify_entry_id)) {
-      $clockify_api->updateTimeEntry($clockify_entry_id, $project_id, $start_date, $end_date, $description);
-      return;
+      try {
+        $clockify_api->updateTimeEntry($clockify_entry_id, $project_id, $start_date, $end_date, $description);
+        return;
+      }
+      catch (\GuzzleHttp\Exception\RequestException $e) {
+        if ($e->getCode() == 403) {
+          echo "Could not update clockify time entry because it was probably deleted. Trying to recreate..\n";
+        }
+      }
     }
 
-    $clockify_api->addTimeEntry($project_id, $start_date, $end_date, $description);
+    $clockify_entry_id = $clockify_api->addTimeEntry($project_id, $start_date, $end_date, $description);
     $this->database->insertMapping($redmine_entry_id, $clockify_entry_id);
   }
 
@@ -77,7 +84,12 @@ class Redify {
       $start_date = $this->getStartDateFromSpentOn($time_entry['spent_on']);
       $end_date = $this->getEndDateFromSpentOn($time_entry['spent_on'], $time_entry['hours']);
 
-      $project_id = $redmine_settings['projects'][$time_entry['project']['name']];
+      $project_id = !empty($redmine_settings['projects'][$time_entry['project']['name']]) ?
+        $redmine_settings['projects'][$time_entry['project']['name']] : NULL;
+
+      if (empty($project_id)) {
+        continue;
+      }
 
       $this->createOrUpdateClockifyEntry($clockify_key, $redmine_entry_id, $project_id, $start_date, $end_date, $description);
     }

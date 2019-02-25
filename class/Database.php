@@ -26,6 +26,15 @@ class Database extends \Medoo\Medoo {
   }
 
   public function insertMapping($redmine_id, $clockify_id) {
+    if (!empty($this->select('time_entry_mapping', 'redmine_id', [
+      'redmine_id' => $redmine_id,
+    ]))) {
+      $this->update('time_entry_mapping', ['clockify_id' => $clockify_id], [
+        'redmine_id' => $redmine_id,
+      ]);
+      return;
+    }
+
     $this->insert('time_entry_mapping', [
       'redmine_id' => $redmine_id,
       'clockify_id' => $clockify_id,
