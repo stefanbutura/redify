@@ -53,7 +53,7 @@ foreach ($config['keys']['redmine'] as $id => $redmine) {
     $end_date = "{$start_date}T{$spent_time}:00Z";
 
     if (!empty($clockify_entry_id)) {
-      $clockify_api->updateTimeEntry($clockify_entry_id, "{$start_date}T00:00:00Z", $end_date, $description);
+      $clockify_api->updateTimeEntry($clockify_entry_id, $project_id, "{$start_date}T00:00:00Z", $end_date, $description);
       continue;
     }
 

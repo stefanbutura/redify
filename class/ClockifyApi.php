@@ -37,13 +37,14 @@ class ClockifyApi {
     return $response_contents['id'];
   }
 
-  public function updateTimeEntry($time_entry_id, $start_date, $end_date, $description = '') {
+  public function updateTimeEntry($time_entry_id, $project_id, $start_date, $end_date, $description = '') {
     $post_url = $this->url . "timeEntries/$time_entry_id/";
     $data = [
       'billable' => FALSE,
       'start' => $start_date,
       'end' => $end_date,
       'description' => $description,
+      'projectId' => $project_id,
     ];
     $response = $this->client->put($post_url, [
       'json' => $data,
