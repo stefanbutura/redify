@@ -1,0 +1,19 @@
+keys:
+  redmine:
+    informea:
+      url: https://support.informea.org
+      api_key: YOUR_API_KEY
+      projects:
+        DART - Data Reporting tool: clockify_project_id
+        Global Pact Website: clockify_project_id
+        InforMEA portal and e-learning: clockify_project_id
+        Judicial Portal: clockify_project_id
+  clockify:
+    stefan.butura@eaudeweb.ro: CLOCKIFY_API_KEY
+
+database:
+  database_type: mysql
+  database_name: redmineclockify
+  username: root
+  password: root
+  host: localhost

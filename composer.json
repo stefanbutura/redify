@@ -1,0 +1,15 @@
+{
+    "name": "eaudeweb/redmine-clockify",
+    "type": "project",
+    "authors": [
+        {
+            "name": "stefan.butura",
+            "email": "stefan_butura@yahoo.com"
+        }
+    ],
+    "require": {
+        "symfony/yaml": "^4.2",
+        "guzzlehttp/guzzle": "^6.3",
+        "catfan/medoo": "^1.6"
+    }
+}
