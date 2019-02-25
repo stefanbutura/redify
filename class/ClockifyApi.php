@@ -16,10 +16,6 @@ class ClockifyApi {
   }
 
   public function addTimeEntry($project_id, $start_date, $end_date, $description = '') {
-    var_dump($project_id);
-    var_dump($start_date);
-    var_dump($end_date);
-    var_dump($description);
     $post_url = $this->url . 'timeEntries/';
     $data = [
       'start' => $start_date,
