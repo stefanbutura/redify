@@ -16,13 +16,13 @@ class RedmineApi {
   }
 
   public function getTimeEntries($updated_after = NULL) {
-    $time_entry_url = $this->url . "/time_entries.json?updated_on%3D%3E%3D$updated_after&limit=10000";
+    $time_entry_url = $this->url . "/time_entries.json?updated_on=>=$updated_after&limit=10000";
     $response = $this->callApi($time_entry_url);
     return $response['time_entries'];
   }
 
   public function getUserByName($name) {
-    $user_filter_url = $this->url . "/users.json?name%3D$name";
+    $user_filter_url = $this->url . "/users.json?name=$name";
     $response = $this->callApi($user_filter_url);
     return !empty($response) ? $response['users'][0] : NULL;
   }
