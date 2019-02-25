@@ -15,14 +15,14 @@ class RedmineApi {
     $this->client = new GuzzleHttp\Client();
   }
 
-  public function getTimeEntries($updated_after = NULL) {
-    $time_entry_url = $this->url . "/time_entries.json?updated_on=>=$updated_after&limit=10000";
+  public function getTimeEntriesForUser($updated_after, $user_id) {
+    $time_entry_url = $this->url . "/time_entries.json?updated_on=>=$updated_after&user_id=$user_id";
     $response = $this->callApi($time_entry_url);
     return $response['time_entries'];
   }
 
-  public function getUserByName($name) {
-    $user_filter_url = $this->url . "/users.json?name=$name";
+  public function getUserByEmail($email) {
+    $user_filter_url = $this->url . "/users.json?name=$email";
     $response = $this->callApi($user_filter_url);
     return !empty($response) ? $response['users'][0] : NULL;
   }

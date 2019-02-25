@@ -27,38 +27,36 @@ foreach ($config['keys']['redmine'] as $id => $redmine) {
   if (empty($updated_after)) {
     $updated_after = date('Y-m-d');
   }
-  $time_entries = $redmine_api->getTimeEntries($updated_after);
-  foreach ($time_entries as $time_entry) {
-    $redmine_entry_id = $time_entry['id'];
-    $description = "#$redmine_entry_id";
-    if (!empty($time_entry['comments'])) {
-      $description .= ' - ' . $time_entry['comments'];
+
+  foreach ($config['keys']['clockify'] as $redmine_email => $clockify_key) {
+    $user = $redmine_api->getUserByEmail($redmine_email);
+    $user_id = $user['id'];
+    $time_entries = $redmine_api->getTimeEntriesForUser($updated_after, $user_id);
+    foreach ($time_entries as $time_entry) {
+      $redmine_entry_id = $time_entry['id'];
+      $description = "#$redmine_entry_id";
+      if (!empty($time_entry['comments'])) {
+        $description .= ' - ' . $time_entry['comments'];
+      }
+
+      $clockify_api = new ClockifyApi($clockify_key);
+
+      $clockify_entry_id = $database->getClockifyId($redmine_entry_id);
+
+      $project_id = $redmine['projects'][$time_entry['project']['name']];
+      $start_date = $time_entry['spent_on'];
+      $time = $time_entry['hours'];
+      $spent_time = sprintf('%02d:%02d', $time, fmod($time, 1) * 60);
+      $end_date = "{$start_date}T{$spent_time}:00Z";
+
+      if (!empty($clockify_entry_id)) {
+        $clockify_api->updateTimeEntry($clockify_entry_id, $project_id, "{$start_date}T00:00:00Z", $end_date, $description);
+        continue;
+      }
+
+      $clockify_entry_id = $clockify_api->addTimeEntry($project_id, "{$start_date}T00:00:00Z", $end_date, $description);
+      $database->insertMapping($redmine_entry_id, $clockify_entry_id);
     }
-
-    $user = $redmine_api->getUserByName($time_entry['user']['name']);
-    $user_mail = $user['mail'];
-
-    if (empty($config['keys']['clockify'][$user_mail])) {
-      continue;
-    }
-    $clockify_key = $config['keys']['clockify'][$user_mail];
-    $clockify_api = new ClockifyApi($clockify_key);
-
-    $clockify_entry_id = $database->getClockifyId($redmine_entry_id);
-
-    $project_id = $redmine['projects'][$time_entry['project']['name']];
-    $start_date = $time_entry['spent_on'];
-    $time = (int) $time_entry['hours'];
-    $spent_time = sprintf('%02d:%02d', $time, fmod($time, 1) * 60);
-    $end_date = "{$start_date}T{$spent_time}:00Z";
-
-    if (!empty($clockify_entry_id)) {
-      $clockify_api->updateTimeEntry($clockify_entry_id, $project_id, "{$start_date}T00:00:00Z", $end_date, $description);
-      continue;
-    }
-
-    $clockify_entry_id = $clockify_api->addTimeEntry($project_id, "{$start_date}T00:00:00Z", $end_date, $description);
-    $database->insertMapping($redmine_entry_id, $clockify_entry_id);
   }
 }
 
