@@ -3,28 +3,9 @@ keys:
     informea:
       url: https://support.informea.org
       api_key: YOUR_API_KEY
-      projects:
-        DART - Data Reporting tool: clockify_project_id
-        Global Pact Website: clockify_project_id
-        InforMEA portal and e-learning: clockify_project_id
-        Judicial Portal: clockify_project_id
     helpdesk:
       url: https://helpdesk.eaudeweb.ro
       api_key: YOUR_API_KEY
-      projects:
-        CITES: clockify_project_id
-        CMS Family websites: clockify_project_id
-        Drupal GDPR framework: clockify_project_id
-        EDW - Intern: clockify_project_id
-        eHolcim: clockify_project_id
-        Good practices: clockify_project_id
-        Helpdesk: clockify_project_id
-        Holcim BIM: clockify_project_id
-        IUCN - World Heritage Outlook: clockify_project_id
-        IUCN - World Heritage Outlook 2: clockify_project_id
-        PHP: clockify_project_id
-        UNCCD-Website and SKBP: clockify_project_id
-        WILDLEX: clockify_project_id
   clockify:
     workspace_id: CLOCKIFY_WORKSPACE_ID
 

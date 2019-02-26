@@ -98,7 +98,7 @@ class Redify {
     $this->database->setVariable('last_run', date('Y-m-d'));
   }
 
-  protected function syncUserEntries(RedmineApi $redmine_api, $redmine_user_id, $redmine_email, $redmine_settings, $clockify_key, $updated_after) {
+  protected function syncUserEntries(RedmineApi $redmine_api, $redmine_user_id, $redmine_email, $clockify_key, $clockify_project_id, $updated_after) {
     $time_entries = $redmine_api->getTimeEntriesForUser($updated_after, $redmine_user_id);
 
     if (empty($time_entries)) {
@@ -112,23 +112,16 @@ class Redify {
       $start_date = $this->getStartDateFromSpentOn($time_entry['spent_on']);
       $end_date = $this->getEndDateFromSpentOn($time_entry['spent_on'], $time_entry['hours']);
 
-      $project_id = !empty($redmine_settings['projects'][$time_entry['project']['name']]) ?
-        $redmine_settings['projects'][$time_entry['project']['name']] : NULL;
-
-      if (empty($project_id)) {
-        continue;
-      }
-
-      $this->createOrUpdateClockifyEntry($clockify_key, $redmine_entry_id, $project_id, $start_date, $end_date, $description, $redmine_email);
+      $this->createOrUpdateClockifyEntry($clockify_key, $redmine_entry_id, $clockify_project_id, $start_date, $end_date, $description, $redmine_email);
     }
   }
 
-  protected function getClockifyKey(array $redmine_user_data) {
-    if (empty($redmine_user_data)) {
+  protected function getCustomFieldValue(array $redmine_content_data, $field) {
+    if (empty($redmine_content_data)) {
       return NULL;
     }
-    foreach ($redmine_user_data['custom_fields'] as $custom_field) {
-      if ($custom_field['name'] == 'Clockify key') {
+    foreach ($redmine_content_data['custom_fields'] as $custom_field) {
+      if ($custom_field['name'] == $field) {
         return $custom_field['value'];
       }
     }
@@ -140,13 +133,25 @@ class Redify {
     foreach ($this->config['keys']['redmine'] as $id => $redmine_settings) {
       $redmine_api = new RedmineApi($redmine_settings['url'], $redmine_settings['api_key']);
       $redmine_users = $redmine_api->getRedmineUsers();
+      $redmine_projects = $redmine_api->getRedmineProjects();
 
-      foreach ($redmine_users as $redmine_user) {
-        $redmine_user_id = $redmine_user['id'];
-        $redmine_email = $redmine_user['mail'];
-        $clockify_key = $this->getClockifyKey($redmine_user);
-        if (!empty($clockify_key)) {
-          $this->syncUserEntries($redmine_api, $redmine_user_id, $redmine_email, $redmine_settings, $clockify_key, $updated_after);
+      if (empty($redmine_users) || empty($redmine_projects)) {
+        return;
+      }
+
+      foreach ($redmine_projects as $redmine_project) {
+        $clockify_project_id = $this->getCustomFieldValue($redmine_project, 'Clockify workspace ID');
+        if (empty($clockify_project_id)) {
+          continue;
+        }
+
+        foreach ($redmine_users as $redmine_user) {
+          $redmine_user_id = $redmine_user['id'];
+          $redmine_email = $redmine_user['mail'];
+          $clockify_key = $this->getCustomFieldValue($redmine_user, 'Clockify key');
+          if (!empty($clockify_key)) {
+            $this->syncUserEntries($redmine_api, $redmine_user_id, $redmine_email, $clockify_key, $clockify_project_id, $updated_after);
+          }
         }
       }
     }

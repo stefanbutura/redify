@@ -64,12 +64,46 @@ class RedmineApi {
 
   public function getRedmineUsers() {
     try {
-      $user_filter_url = $this->url . "/users.json?";
+      $user_filter_url = $this->url . "/users.json?limit=100";
       $response = $this->callApi($user_filter_url);
       return !empty($response) ? $response['users']: NULL;
     }
     catch (RequestException $e) {
       echo "Error fetching users. Reason: {$e->getResponse()}\n";
+      return FALSE;
+    }
+  }
+
+  public function getRedmineProjects() {
+    try {
+      $user_filter_url = $this->url . "/projects.json?limit=100";
+      $response = $this->callApi($user_filter_url);
+      return !empty($response) ? $response['projects']: NULL;
+    }
+    catch (RequestException $e) {
+      echo "Error fetching projects. Reason: {$e->getResponse()}\n";
+      return FALSE;
+    }
+  }
+
+  public function getClockifyProjectId($redmine_project_id) {
+    try {
+      $url = $this->url . "/projects/{$redmine_project_id}.json";
+      $response = $this->callApi($url);
+      if (empty($response)) {
+        return NULL;
+      }
+
+      foreach ($response['custom_fields'] as $custom_field) {
+        if ($custom_field['name'] == 'Clockify workspace ID') {
+          return $custom_field['value'];
+        }
+      }
+
+      return NULL;
+    }
+    catch (RequestException $e) {
+      echo "Error fetching Clockify workspace id for project {$redmine_project_id}. Reason: {$e->getResponse()}\n";
       return FALSE;
     }
   }
