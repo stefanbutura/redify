@@ -26,7 +26,10 @@ keys:
         UNCCD-Website and SKBP: clockify_project_id
         WILDLEX: clockify_project_id
   clockify:
-    your_redmine_email@email.com: CLOCKIFY_API_KEY
+    user1@email.com: CLOCKIFY_API_KEY
+    user2@email.com: CLOCKIFY_API_KEY
+    user3@email.com: CLOCKIFY_API_KEY
+    user4@email.com: CLOCKIFY_API_KEY
 
 database:
   database_type: mysql
