@@ -50,33 +50,53 @@ class Redify {
     return "{$spent_on}T00:00:00Z";
   }
 
-  protected function createOrUpdateClockifyEntry($clockify_key, $redmine_entry_id, $project_id, $start_date, $end_date, $description) {
+  protected function createOrUpdateClockifyEntry($clockify_key, $redmine_entry_id, $project_id, $start_date, $end_date, $description, $redmine_email) {
     $clockify_api = new ClockifyApi($clockify_key);
     $clockify_entry_id = $this->database->getClockifyId($redmine_entry_id);
     if (!empty($clockify_entry_id)) {
       try {
-        $clockify_api->updateTimeEntry($clockify_entry_id, $project_id, $start_date, $end_date, $description);
-        return;
+        return $clockify_api->updateTimeEntry($clockify_entry_id, $project_id, $start_date, $end_date, $description);
       }
       catch (\GuzzleHttp\Exception\RequestException $e) {
         if ($e->getCode() == 403) {
-          echo "Could not update clockify time entry because it was probably deleted. Trying to recreate..\n";
+          echo "Could not update clockify time entry because it was probably deleted. Trying to recreate...\n";
+          return FALSE;
         }
       }
     }
 
-    $clockify_entry_id = $clockify_api->addTimeEntry($project_id, $start_date, $end_date, $description);
-    $this->database->insertMapping($redmine_entry_id, $clockify_entry_id);
+    try {
+      $response = $clockify_api->addTimeEntry($project_id, $start_date, $end_date, $description);
+      $clockify_entry_id = json_decode($response->getBody()->getContents(), TRUE)['id'];
+
+      $this->database->insertMapping($redmine_entry_id, $clockify_entry_id);
+      return $response;
+    }
+    catch (\GuzzleHttp\Exception\RequestException $e) {
+      echo "Could not sync time entry $redmine_entry_id for user $redmine_email. Reason: {$e->getResponse()}\n";
+      return FALSE;
+    }
+
   }
 
   protected function updateLastRunVariable() {
     $this->database->setVariable('last_run', date('Y-m-d'));
   }
 
-  protected function updateTimeEntriesForUser(RedmineApi $redmine_api, $redmine_email, $redmine_settings, $clockify_key, $updated_after) {
+  protected function syncTimeEntriesForUser(RedmineApi $redmine_api, $redmine_email, $redmine_settings, $clockify_key, $updated_after) {
     $user = $redmine_api->getUserByEmail($redmine_email);
+
+    if (empty($user)) {
+      return;
+    }
+
     $user_id = $user['id'];
     $time_entries = $redmine_api->getTimeEntriesForUser($updated_after, $user_id);
+
+    if (empty($time_entries)) {
+      return;
+    }
+
     foreach ($time_entries as $time_entry) {
       $redmine_entry_id = $time_entry['id'];
       $description = $this->getTaskDescription($redmine_entry_id, $time_entry['comments']);
@@ -91,7 +111,7 @@ class Redify {
         continue;
       }
 
-      $this->createOrUpdateClockifyEntry($clockify_key, $redmine_entry_id, $project_id, $start_date, $end_date, $description);
+      $this->createOrUpdateClockifyEntry($clockify_key, $redmine_entry_id, $project_id, $start_date, $end_date, $description, $redmine_email);
     }
   }
 
@@ -101,7 +121,7 @@ class Redify {
       $updated_after = $this->getLastUpdate();
 
       foreach ($this->config['keys']['clockify'] as $redmine_email => $clockify_key) {
-        $this->updateTimeEntriesForUser($redmine_api, $redmine_email, $redmine, $clockify_key, $updated_after);
+        $this->syncTimeEntriesForUser($redmine_api, $redmine_email, $redmine, $clockify_key, $updated_after);
       }
     }
 

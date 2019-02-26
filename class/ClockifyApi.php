@@ -31,10 +31,7 @@ class ClockifyApi {
         'cache-control' => 'no-cache',
       ],
     ]);
-
-    $response_contents = json_decode($response->getBody()->getContents(), TRUE);
-
-    return $response_contents['id'];
+    return $response;
   }
 
   public function updateTimeEntry($time_entry_id, $project_id, $start_date, $end_date, $description = '') {
