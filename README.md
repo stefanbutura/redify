@@ -33,3 +33,5 @@ The first run of this command will only fetch today's time entries.
 # Known issues
 
 1. Deleting a time entry from Redmine will not delete the time entry from Clockify. For now, it has to be deleted manually.
+
+2. Only the most recent 100 entries are updated for each user
