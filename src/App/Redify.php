@@ -45,6 +45,8 @@ class Redify {
     if (!empty($comments)) {
       $description .= ' - ' . $comments;
     }
+
+    $description .= ' [Redify]';
     return $description;
   }
 
@@ -105,7 +107,7 @@ class Redify {
 
     foreach ($time_entries as $time_entry) {
       $redmine_entry_id = $time_entry['id'];
-      $description = $this->getTaskDescription($redmine_entry_id, $time_entry['comments']);
+      $description = $this->getTaskDescription($time_entry['issue']['id'], $time_entry['comments']);
 
       $start_date = $this->getStartDateFromSpentOn($time_entry['spent_on']);
       $end_date = $this->getEndDateFromSpentOn($time_entry['spent_on'], $time_entry['hours']);
