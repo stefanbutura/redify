@@ -62,4 +62,16 @@ class RedmineApi {
     return json_decode($response, TRUE);
   }
 
+  public function getRedmineUsers() {
+    try {
+      $user_filter_url = $this->url . "/users.json?";
+      $response = $this->callApi($user_filter_url);
+      return !empty($response) ? $response['users']: NULL;
+    }
+    catch (RequestException $e) {
+      echo "Error fetching users. Reason: {$e->getResponse()}\n";
+      return FALSE;
+    }
+  }
+
 }

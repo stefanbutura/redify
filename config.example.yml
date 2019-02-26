@@ -27,11 +27,6 @@ keys:
         WILDLEX: clockify_project_id
   clockify:
     workspace_id: CLOCKIFY_WORKSPACE_ID
-    users:
-      user1@email.com: CLOCKIFY_API_KEY
-      user2@email.com: CLOCKIFY_API_KEY
-      user3@email.com: CLOCKIFY_API_KEY
-      user4@email.com: CLOCKIFY_API_KEY
 
 database:
   database_type: mysql

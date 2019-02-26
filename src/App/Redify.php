@@ -98,15 +98,8 @@ class Redify {
     $this->database->setVariable('last_run', date('Y-m-d'));
   }
 
-  protected function syncUserEntries(RedmineApi $redmine_api, $redmine_email, $redmine_settings, $clockify_key, $updated_after) {
-    $user = $redmine_api->getUserByEmail($redmine_email);
-
-    if (empty($user)) {
-      return;
-    }
-
-    $user_id = $user['id'];
-    $time_entries = $redmine_api->getTimeEntriesForUser($updated_after, $user_id);
+  protected function syncUserEntries(RedmineApi $redmine_api, $redmine_user_id, $redmine_email, $redmine_settings, $clockify_key, $updated_after) {
+    $time_entries = $redmine_api->getTimeEntriesForUser($updated_after, $redmine_user_id);
 
     if (empty($time_entries)) {
       return;
@@ -130,13 +123,31 @@ class Redify {
     }
   }
 
+  protected function getClockifyKey(array $redmine_user_data) {
+    if (empty($redmine_user_data)) {
+      return NULL;
+    }
+    foreach ($redmine_user_data['custom_fields'] as $custom_field) {
+      if ($custom_field['name'] == 'Clockify key') {
+        return $custom_field['value'];
+      }
+    }
+    return NULL;
+  }
+
   public function syncEntries() {
     $updated_after = $this->getLastUpdate();
-    foreach ($this->config['keys']['redmine'] as $id => $redmine) {
-      $redmine_api = new RedmineApi($redmine['url'], $redmine['api_key']);
+    foreach ($this->config['keys']['redmine'] as $id => $redmine_settings) {
+      $redmine_api = new RedmineApi($redmine_settings['url'], $redmine_settings['api_key']);
+      $redmine_users = $redmine_api->getRedmineUsers();
 
-      foreach ($this->config['keys']['clockify']['users'] as $redmine_email => $clockify_key) {
-        $this->syncUserEntries($redmine_api, $redmine_email, $redmine, $clockify_key, $updated_after);
+      foreach ($redmine_users as $redmine_user) {
+        $redmine_user_id = $redmine_user['id'];
+        $redmine_email = $redmine_user['mail'];
+        $clockify_key = $this->getClockifyKey($redmine_user);
+        if (!empty($clockify_key)) {
+          $this->syncUserEntries($redmine_api, $redmine_user_id, $redmine_email, $redmine_settings, $clockify_key, $updated_after);
+        }
       }
     }
 
