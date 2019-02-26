@@ -44,7 +44,7 @@ class RedmineApi {
     }
   }
 
-  public function callApi($url) {
+  protected function callApi($url) {
     $response = $this->client->get($url, [
       'headers' => [
         'X-Redmine-API-Key' => $this->api_key,

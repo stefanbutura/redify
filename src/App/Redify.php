@@ -10,9 +10,20 @@ use Symfony\Component\Yaml\Yaml;
 
 class Redify {
 
+  /**
+   * @var array
+   */
   protected $config;
-  
+
+  /**
+   * @var Database
+   */
   protected $database;
+
+  /**
+   * @var string
+   */
+  protected $workspaceId;
 
   public function __construct() {
     $this->config = Yaml::parseFile(realpath(getcwd() . '/config.yml'));
@@ -26,13 +37,10 @@ class Redify {
     ]);
 
     $this->database->createDatabase();
+    $this->workspaceId = $this->config['keys']['clockify']['workspace_id'];
   }
 
-  public function getConfig() {
-    return $this->config;
-  }
-
-  protected function getLastUpdate() {
+  protected function getLastUpdate(): string {
     $updated_after = $this->database->getVariable('last_run');
     if (empty($updated_after)) {
       return date('Y-m-d');
@@ -40,7 +48,7 @@ class Redify {
     return $updated_after;
   }
 
-  protected function getTaskDescription($task_id, $comments) {
+  protected function getTaskDescription(string $task_id, string $comments = NULL): string {
     $description = "#$task_id";
     if (!empty($comments)) {
       $description .= ' - ' . $comments;
@@ -50,7 +58,7 @@ class Redify {
     return $description;
   }
 
-  protected function getEndDateFromSpentOn($spent_on, $duration) {
+  protected function getEndDateFromSpentOn(string $spent_on, $duration): string {
     $spent_time = sprintf('%02d:%02d', $duration, fmod($duration, 1) * 60);
     return "{$spent_on}T{$spent_time}:00Z";
   }
@@ -59,15 +67,17 @@ class Redify {
     return "{$spent_on}T00:00:00Z";
   }
 
-  protected function createOrUpdateClockifyEntry($clockify_key, $redmine_entry_id, $project_id, $start_date, $end_date, $description, $redmine_email) {
-    $clockify_api = new ClockifyApi($clockify_key);
+  protected function createOrUpdateClockifyEntry(string $clockify_key, string $redmine_entry_id, string $project_id, string $start_date, string $end_date, string $description, string $redmine_email) {
+    $clockify_api = new ClockifyApi($this->workspaceId, $clockify_key);
     $clockify_entry_id = $this->database->getClockifyId($redmine_entry_id);
     if (!empty($clockify_entry_id)) {
       try {
-        return $clockify_api->updateTimeEntry($clockify_entry_id, $project_id, $start_date, $end_date, $description);
+        $clockify_api->updateTimeEntry($clockify_entry_id, $project_id, $start_date, $end_date, $description);
+        return;
       }
       catch (RequestException $e) {
         if ($e->getCode() == 403) {
+          // @todo: Log library.
           echo "Could not update redmine time entry {$redmine_entry_id} for user {$redmine_email} because it was probably deleted from their clockify. Trying to recreate...\n";
         }
       }
@@ -78,20 +88,17 @@ class Redify {
       $clockify_entry_id = json_decode($response->getBody()->getContents(), TRUE)['id'];
 
       $this->database->insertMapping($redmine_entry_id, $clockify_entry_id);
-      return $response;
     }
     catch (RequestException $e) {
       echo "Could not sync time entry $redmine_entry_id for user $redmine_email. Reason: {$e->getResponse()}\n";
-      return FALSE;
     }
-
   }
 
   protected function updateLastRunVariable() {
     $this->database->setVariable('last_run', date('Y-m-d'));
   }
 
-  protected function syncTimeEntriesForUser(RedmineApi $redmine_api, $redmine_email, $redmine_settings, $clockify_key, $updated_after) {
+  protected function syncUserEntries(RedmineApi $redmine_api, $redmine_email, $redmine_settings, $clockify_key, $updated_after) {
     $user = $redmine_api->getUserByEmail($redmine_email);
 
     if (empty($user)) {
@@ -123,14 +130,13 @@ class Redify {
     }
   }
 
-
-  public function syncTimeEntries() {
+  public function syncEntries() {
+    $updated_after = $this->getLastUpdate();
     foreach ($this->config['keys']['redmine'] as $id => $redmine) {
       $redmine_api = new RedmineApi($redmine['url'], $redmine['api_key']);
-      $updated_after = $this->getLastUpdate();
 
-      foreach ($this->config['keys']['clockify'] as $redmine_email => $clockify_key) {
-        $this->syncTimeEntriesForUser($redmine_api, $redmine_email, $redmine, $clockify_key, $updated_after);
+      foreach ($this->config['keys']['clockify']['users'] as $redmine_email => $clockify_key) {
+        $this->syncUserEntries($redmine_api, $redmine_email, $redmine, $clockify_key, $updated_after);
       }
     }
 

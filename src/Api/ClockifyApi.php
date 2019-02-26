@@ -6,15 +6,27 @@ use GuzzleHttp\Client;
 
 class ClockifyApi {
 
+  const BASE_URL = 'https://api.clockify.me/api/workspaces/';
+
+  /**
+   * @var string
+   */
   protected $url;
 
+  /**
+   * @var string
+   */
   protected $api_key;
 
+  /**
+   * @var Client
+   */
   protected $client;
 
-  function __construct($api_key) {
+  function __construct($workspace_id, $api_key) {
     $this->api_key = $api_key;
-    $this->url = 'https://api.clockify.me/api/workspaces/5c3cc4efb079871b774277c2/';
+
+    $this->url = static::BASE_URL . $workspace_id . '/';
 
     $this->client = new Client();
   }
@@ -57,5 +69,4 @@ class ClockifyApi {
     ]);
     return $response;
   }
-
 }
