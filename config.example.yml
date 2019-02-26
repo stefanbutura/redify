@@ -9,7 +9,7 @@ keys:
         InforMEA portal and e-learning: clockify_project_id
         Judicial Portal: clockify_project_id
     helpdesk:
-      url: https://helpdesk.eaudeweb.ro/
+      url: https://helpdesk.eaudeweb.ro
       api_key: YOUR_API_KEY
       projects:
         CITES: clockify_project_id
@@ -34,3 +34,4 @@ database:
   username: root
   password: root
   host: localhost
+  port: 3306

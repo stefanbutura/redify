@@ -22,6 +22,7 @@ class Redify {
       'server' => $this->config['database']['host'],
       'username' => $this->config['database']['username'],
       'password' => $this->config['database']['password'],
+      'port' => $this->config['database']['port'],
     ]);
 
     $this->database->createDatabase();
