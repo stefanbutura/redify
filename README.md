@@ -29,3 +29,7 @@ The first run of this command will only fetch today's time entries.
 `mysql -u root -p -D {DB_NAME} -e "UPDATE variables SET value = '2000-01-25' WHERE ID = 'last_run';"`
 
 `php redify.php`
+
+# Known issues
+
+1. Deleting a time entry from Redmine will not delete the time entry from Clockify. For now, it has to be deleted manually.
