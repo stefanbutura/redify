@@ -59,8 +59,7 @@ class Redify {
       }
       catch (\GuzzleHttp\Exception\RequestException $e) {
         if ($e->getCode() == 403) {
-          echo "Could not update clockify time entry because it was probably deleted. Trying to recreate...\n";
-          return FALSE;
+          echo "Could not update redmine time entry {$redmine_entry_id} for user {$redmine_email} because it was probably deleted from their clockify. Trying to recreate...\n";
         }
       }
     }
