@@ -6,15 +6,15 @@ A php tool used to sync time entries between Redmine and Clockify. Time entries 
 
 1. Create a database
 
-2. Copy config.example.yml into config.yml
+2. Copy config.example.yml into config.yml and edit it
 
-3. Add your Redmine instances, mapping the project names to the Clockify projects IDS
+    * Add your Redmine instances, mapping the project names to the Clockify projects IDS
 
-4. Add your users, mapping their Redmine email to their Clockify API key
+    * Add your users, mapping their Redmine email to their Clockify API key
 
-5. Edit your database connection
+    * Edit your database connection
 
-6. Patch your Redmine instances using patch/time-entry-query.patch. This makes Redmine support updated_on queries for time entries - mandatory for fetching time entries updated after a certain date.
+3. Patch your Redmine instances using patch/time-entry-query.patch. This makes Redmine support updated_on queries for time entries - mandatory for fetching time entries updated after a certain date.
 
 # How to run
 
