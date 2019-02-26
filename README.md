@@ -14,6 +14,8 @@ A php tool used to sync time entries between Redmine and Clockify. Time entries 
 
 5. Edit your database connection
 
+6. Patch your Redmine instances using patch/time-entry-query.patch. This makes Redmine support updated_on queries for time entries - mandatory for fetching time entries updated after a certain date.
+
 # How to run
 
 `php redify.php`
