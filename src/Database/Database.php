@@ -8,20 +8,21 @@ class Database extends Medoo {
 
   public function createDatabase() {
     $result = $this->query('SHOW TABLES');
-    if (empty($result)) {
-      $this->query("CREATE TABLE IF NOT EXISTS time_entry_mapping (
-        id INT AUTO_INCREMENT,
-        redmine_id VARCHAR(255) NOT NULL,
-        clockify_id VARCHAR(255) NOT NULL,
-        PRIMARY KEY (id)
-      );");
-
-      $this->query("CREATE TABLE IF NOT EXISTS variables (
-        id VARCHAR(255),
-        value VARCHAR(255) NOT NULL,
-        PRIMARY KEY (id)
-      );");
+    if (!empty($result)) {
+      return;
     }
+    $this->query("CREATE TABLE IF NOT EXISTS time_entry_mapping (
+      id INT AUTO_INCREMENT,
+      redmine_id VARCHAR(255) NOT NULL,
+      clockify_id VARCHAR(255) NOT NULL,
+      PRIMARY KEY (id)
+    );");
+
+    $this->query("CREATE TABLE IF NOT EXISTS variables (
+      id VARCHAR(255),
+      value VARCHAR(255) NOT NULL,
+      PRIMARY KEY (id)
+    );");
   }
 
   public function getClockifyId($redmine_id) {
