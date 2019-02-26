@@ -11,5 +11,8 @@
         "symfony/yaml": "^4.2",
         "guzzlehttp/guzzle": "^6.3",
         "catfan/medoo": "^1.6"
+    },
+    "autoload": {
+        "psr-4": {"Redify\\": "src/"}
     }
 }

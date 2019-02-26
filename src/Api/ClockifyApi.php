@@ -1,5 +1,9 @@
 <?php
 
+namespace Redify\Api;
+
+use GuzzleHttp\Client;
+
 class ClockifyApi {
 
   protected $url;
@@ -12,7 +16,7 @@ class ClockifyApi {
     $this->api_key = $api_key;
     $this->url = 'https://api.clockify.me/api/workspaces/5c3cc4efb079871b774277c2/';
 
-    $this->client = new GuzzleHttp\Client();
+    $this->client = new Client();
   }
 
   public function addTimeEntry($project_id, $start_date, $end_date, $description = '') {

@@ -1,7 +1,10 @@
 <?php
 
-class Database extends \Medoo\Medoo {
+namespace Redify\Database;
 
+use Medoo\Medoo;
+
+class Database extends Medoo {
 
   public function createDatabase() {
     $this->query("CREATE TABLE IF NOT EXISTS time_entry_mapping (

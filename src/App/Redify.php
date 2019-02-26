@@ -1,5 +1,11 @@
 <?php
 
+namespace Redify\App;
+
+use GuzzleHttp\Exception\RequestException;
+use Redify\Api\ClockifyApi;
+use Redify\Api\RedmineApi;
+use Redify\Database\Database;
 use Symfony\Component\Yaml\Yaml;
 
 class Redify {
@@ -9,7 +15,7 @@ class Redify {
   protected $database;
 
   public function __construct() {
-    $this->config = Yaml::parseFile(realpath(__DIR__ . '/../config.yml'));
+    $this->config = Yaml::parseFile(realpath(getcwd() . '/config.yml'));
     $this->database = new Database([
       'database_type' => $this->config['database']['database_type'],
       'database_name' => $this->config['database']['database_name'],
@@ -57,7 +63,7 @@ class Redify {
       try {
         return $clockify_api->updateTimeEntry($clockify_entry_id, $project_id, $start_date, $end_date, $description);
       }
-      catch (\GuzzleHttp\Exception\RequestException $e) {
+      catch (RequestException $e) {
         if ($e->getCode() == 403) {
           echo "Could not update redmine time entry {$redmine_entry_id} for user {$redmine_email} because it was probably deleted from their clockify. Trying to recreate...\n";
         }
@@ -71,7 +77,7 @@ class Redify {
       $this->database->insertMapping($redmine_entry_id, $clockify_entry_id);
       return $response;
     }
-    catch (\GuzzleHttp\Exception\RequestException $e) {
+    catch (RequestException $e) {
       echo "Could not sync time entry $redmine_entry_id for user $redmine_email. Reason: {$e->getResponse()}\n";
       return FALSE;
     }

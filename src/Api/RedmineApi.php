@@ -1,5 +1,10 @@
 <?php
 
+namespace Redify\Api;
+
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
+
 class RedmineApi {
 
   protected $url;
@@ -12,7 +17,7 @@ class RedmineApi {
     $this->url = $url;
     $this->api_key = $api_key;
 
-    $this->client = new GuzzleHttp\Client();
+    $this->client = new Client();
   }
 
   public function getTimeEntriesForUser($updated_after, $user_id) {
@@ -21,7 +26,7 @@ class RedmineApi {
       $response = $this->callApi($time_entry_url);
       return $response['time_entries'];
     }
-    catch (\GuzzleHttp\Exception\RequestException $e) {
+    catch (RequestException $e) {
       echo "Error fetching time entries for user. Reason: {$e->getResponse()}\n";
       return FALSE;
     }
@@ -33,7 +38,7 @@ class RedmineApi {
       $response = $this->callApi($user_filter_url);
       return !empty($response) ? $response['users'][0] : NULL;
     }
-    catch (\GuzzleHttp\Exception\RequestException $e) {
+    catch (RequestException $e) {
       echo "Error fetching data for user $email. Reason: {$e->getResponse()}\n";
       return FALSE;
     }
