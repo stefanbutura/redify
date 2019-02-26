@@ -7,10 +7,19 @@ use GuzzleHttp\Exception\RequestException;
 
 class RedmineApi {
 
+  /**
+   * @var string
+   */
   protected $url;
 
+  /**
+   * @var string
+   */
   protected $api_key;
 
+  /**
+   * @var Client
+   */
   protected $client;
 
   function __construct($url, $api_key) {
