@@ -1,6 +1,6 @@
 # What is redify
 
-A php tool used to sync time entries between Redmine and Clockify. Time entries are fetched from Redmine for each user and added into their respective Clockify.
+A php tool used to sync time entries between Redmine and Clockify. Time entries are fetched from Redmine for each configured user and added into their respective Clockify.
 
 # Prerequisites
 
