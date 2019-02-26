@@ -123,7 +123,8 @@ class Redify {
     }
   }
 
-  public function readTimeEntries() {
+
+  public function syncTimeEntries() {
     foreach ($this->config['keys']['redmine'] as $id => $redmine) {
       $redmine_api = new RedmineApi($redmine['url'], $redmine['api_key']);
       $updated_after = $this->getLastUpdate();
