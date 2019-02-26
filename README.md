@@ -25,4 +25,5 @@ The first run of this command will only fetch today's time entries.
 # Fetching older time entries
 
 `mysql -u root -p -D {DB_NAME} -e "UPDATE variables SET value = '2000-01-25' WHERE ID = 'last_run';"`
+
 `php redify.php`
