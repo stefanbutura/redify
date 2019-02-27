@@ -32,26 +32,7 @@ class ClockifyApi {
   }
 
   public function addTimeEntry($project_id, $start_date, $end_date, $description = '') {
-    $post_url = $this->url . 'timeEntries/';
-    $data = [
-      'start' => $start_date,
-      'end' => $end_date,
-      'description' => $description,
-      'projectId' => $project_id,
-    ];
-    $response = $this->client->post($post_url, [
-      'json' => $data,
-      'headers' => [
-        'Content-Type' => 'application/json',
-        'X-Api-Key' => $this->api_key,
-        'cache-control' => 'no-cache',
-      ],
-    ]);
-    return $response;
-  }
-
-  public function updateTimeEntry($time_entry_id, $project_id, $start_date, $end_date, $description = '') {
-    $post_url = $this->url . "timeEntries/$time_entry_id/";
+    $url = $this->url . 'timeEntries/';
     $data = [
       'billable' => FALSE,
       'start' => $start_date,
@@ -59,14 +40,33 @@ class ClockifyApi {
       'description' => $description,
       'projectId' => $project_id,
     ];
-    $response = $this->client->put($post_url, [
-      'json' => $data,
+    return $this->apiCall('POST', $url, $data);
+  }
+
+  public function updateTimeEntry($time_entry_id, $project_id, $start_date, $end_date, $description = '') {
+    $url = $this->url . "timeEntries/$time_entry_id/";
+    $data = [
+      'billable' => FALSE,
+      'start' => $start_date,
+      'end' => $end_date,
+      'description' => $description,
+      'projectId' => $project_id,
+    ];
+    return $this->apiCall('PUT', $url, $data);
+  }
+
+  public function apiCall(string $method, string $url, array $data = NULL) {
+    $settings = [
       'headers' => [
         'Content-Type' => 'application/json',
         'X-Api-Key' => $this->api_key,
         'cache-control' => 'no-cache',
       ],
-    ]);
-    return $response;
+    ];
+    if (!empty($data)) {
+      $settings['json'] = $data;
+    }
+    return $this->client->request($method, $url, $settings);
   }
+
 }

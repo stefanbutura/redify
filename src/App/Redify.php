@@ -6,6 +6,7 @@ use GuzzleHttp\Exception\RequestException;
 use Redify\Api\ClockifyApi;
 use Redify\Api\RedmineApi;
 use Redify\Database\Database;
+use Redify\Utils\Helper;
 use Symfony\Component\Yaml\Yaml;
 
 class Redify {
@@ -27,17 +28,12 @@ class Redify {
 
   public function __construct() {
     $this->config = Yaml::parseFile(realpath(getcwd() . '/config.yml'));
-    $this->database = new Database([
-      'database_type' => $this->config['database']['database_type'],
-      'database_name' => $this->config['database']['database_name'],
-      'server' => $this->config['database']['host'],
-      'username' => $this->config['database']['username'],
-      'password' => $this->config['database']['password'],
-      'port' => $this->config['database']['port'],
-    ]);
+
+    $this->workspaceId = $this->config['keys']['clockify']['workspace_id'];
+
+    $this->database = new Database($this->config['database']);
 
     $this->database->createDatabase();
-    $this->workspaceId = $this->config['keys']['clockify']['workspace_id'];
   }
 
   protected function getLastUpdate(): string {
@@ -46,25 +42,6 @@ class Redify {
       return date('Y-m-d');
     }
     return $updated_after;
-  }
-
-  protected function getTaskDescription(string $task_id, string $comments = NULL): string {
-    $description = "#$task_id";
-    if (!empty($comments)) {
-      $description .= ' - ' . $comments;
-    }
-
-    $description .= ' [Redify]';
-    return $description;
-  }
-
-  protected function getEndDateFromSpentOn(string $spent_on, $duration): string {
-    $spent_time = sprintf('%02d:%02d', $duration, fmod($duration, 1) * 60);
-    return "{$spent_on}T{$spent_time}:00Z";
-  }
-
-  protected function getStartDateFromSpentOn($spent_on) {
-    return "{$spent_on}T00:00:00Z";
   }
 
   protected function createOrUpdateClockifyEntry(string $clockify_key, string $redmine_entry_id, string $project_id, string $start_date, string $end_date, string $description, string $redmine_email) {
@@ -98,8 +75,8 @@ class Redify {
     $this->database->setVariable('last_run', date('Y-m-d'));
   }
 
-  protected function syncUserEntries(RedmineApi $redmine_api, $redmine_user_id, $redmine_email, $clockify_key, $clockify_project_id, $updated_after) {
-    $time_entries = $redmine_api->getTimeEntriesForUser($updated_after, $redmine_user_id);
+  protected function syncUserEntries(RedmineApi $redmine_api, $redmine_project_id, $redmine_user_id, $redmine_email, $clockify_key, $clockify_project_id, $updated_after) {
+    $time_entries = $redmine_api->getTimeEntriesForUser($updated_after, $redmine_user_id, $redmine_project_id);
 
     if (empty($time_entries)) {
       return;
@@ -107,25 +84,14 @@ class Redify {
 
     foreach ($time_entries as $time_entry) {
       $redmine_entry_id = $time_entry['id'];
-      $description = $this->getTaskDescription($time_entry['issue']['id'], $time_entry['comments']);
 
-      $start_date = $this->getStartDateFromSpentOn($time_entry['spent_on']);
-      $end_date = $this->getEndDateFromSpentOn($time_entry['spent_on'], $time_entry['hours']);
+      $description = Helper::getDescriptionForClockify($time_entry['issue']['id'], $time_entry['comments']);
+
+      $start_date = Helper::getStartDateFromSpentOn($time_entry['spent_on']);
+      $end_date = Helper::getEndDateFromSpentOn($time_entry['spent_on'], $time_entry['hours']);
 
       $this->createOrUpdateClockifyEntry($clockify_key, $redmine_entry_id, $clockify_project_id, $start_date, $end_date, $description, $redmine_email);
     }
-  }
-
-  protected function getCustomFieldValue(array $redmine_content_data, $field) {
-    if (empty($redmine_content_data)) {
-      return NULL;
-    }
-    foreach ($redmine_content_data['custom_fields'] as $custom_field) {
-      if ($custom_field['name'] == $field) {
-        return $custom_field['value'];
-      }
-    }
-    return NULL;
   }
 
   public function syncEntries() {
@@ -140,7 +106,7 @@ class Redify {
       }
 
       foreach ($redmine_projects as $redmine_project) {
-        $clockify_project_id = $this->getCustomFieldValue($redmine_project, 'Clockify workspace ID');
+        $clockify_project_id = Helper::getCustomFieldValue($redmine_project, 'Clockify workspace ID');
         if (empty($clockify_project_id)) {
           continue;
         }
@@ -148,9 +114,9 @@ class Redify {
         foreach ($redmine_users as $redmine_user) {
           $redmine_user_id = $redmine_user['id'];
           $redmine_email = $redmine_user['mail'];
-          $clockify_key = $this->getCustomFieldValue($redmine_user, 'Clockify key');
+          $clockify_key = Helper::getCustomFieldValue($redmine_user, 'Clockify key');
           if (!empty($clockify_key)) {
-            $this->syncUserEntries($redmine_api, $redmine_user_id, $redmine_email, $clockify_key, $clockify_project_id, $updated_after);
+            $this->syncUserEntries($redmine_api, $redmine_project['id'], $redmine_user_id, $redmine_email, $clockify_key, $clockify_project_id, $updated_after);
           }
         }
       }

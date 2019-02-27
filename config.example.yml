@@ -14,5 +14,5 @@ database:
   database_name: redmineclockify
   username: root
   password: root
-  host: localhost
+  server: localhost
   port: 3306
