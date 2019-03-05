@@ -67,7 +67,7 @@ class Redify {
       $this->database->insertMapping($redmine_entry_id, $clockify_entry_id);
     }
     catch (RequestException $e) {
-      echo "Could not sync time entry $redmine_entry_id for user $redmine_email. Reason: {$e->getResponse()}\n";
+      echo "Could not sync time entry $redmine_entry_id for user $redmine_email. Reason: {$e->getResponse()->getBody()}\n";
     }
   }
 
@@ -99,6 +99,7 @@ class Redify {
     foreach ($this->config['keys']['redmine'] as $id => $redmine_settings) {
       $redmine_api = new RedmineApi($redmine_settings['url'], $redmine_settings['api_key']);
       $redmine_users = $redmine_api->getRedmineUsers();
+
       $redmine_projects = $redmine_api->getRedmineProjects();
 
       if (empty($redmine_users) || empty($redmine_projects)) {
@@ -106,7 +107,7 @@ class Redify {
       }
 
       foreach ($redmine_projects as $redmine_project) {
-        $clockify_project_id = Helper::getCustomFieldValue($redmine_project, 'Clockify workspace ID');
+        $clockify_project_id = Helper::getCustomFieldValue($redmine_project, 'Clockify project ID');
         if (empty($clockify_project_id)) {
           continue;
         }
