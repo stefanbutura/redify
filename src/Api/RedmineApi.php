@@ -30,6 +30,28 @@ class RedmineApi {
     $this->client = new Client();
   }
 
+  public function getAllTimeEntries($updated_after) {
+    $time_entries = [];
+    $page = 1;
+    while (!empty($fetched_time_entries = $this->getAllTimeEntriesPage($updated_after, $page))) {
+      $page++;
+      $time_entries = array_merge($time_entries, $fetched_time_entries);
+    }
+    return $time_entries;
+  }
+
+  public function getAllTimeEntriesPage($updated_after, $page) {
+    $time_entry_url = $this->url . "/time_entries.json?updated_on=>=$updated_after&limit=100&page=$page";
+    try {
+      $response = $this->getDataFromApiCall($time_entry_url);
+      return $response['time_entries'];
+    }
+    catch (RequestException $e) {
+      echo "Error fetching time entries. Reason: {$e->getResponse()->getBody()}\n";
+      return FALSE;
+    }
+  }
+
   public function getTimeEntriesForUser($updated_after, $user_id, $project_id) {
     $time_entries = [];
     $page = 1;
@@ -42,7 +64,6 @@ class RedmineApi {
 
   public function getTimeEntriesForUserPage($updated_after, $user_id, $project_id, $page) {
     $time_entry_url = $this->url . "/time_entries.json?updated_on=>=$updated_after&user_id=$user_id&limit=100&project_id=$project_id&page=$page";
-    var_dump($time_entry_url);
     try {
       $response = $this->getDataFromApiCall($time_entry_url);
       return $response['time_entries'];
@@ -95,6 +116,30 @@ class RedmineApi {
     }
     catch (RequestException $e) {
       echo "Error fetching projects. Reason: {$e->getResponse()->getBody()}\n";
+      return FALSE;
+    }
+  }
+
+  public function getProjectData($project_id) {
+    try {
+      $project_url = $this->url . "/projects/$project_id.json";
+      $response = $this->getDataFromApiCall($project_url);
+      return !empty($response) ? $response['project']: NULL;
+    }
+    catch (RequestException $e) {
+      echo "Error fetching project $project_id. Reason: {$e->getResponse()->getBody()}\n";
+      return FALSE;
+    }
+  }
+
+  public function getUserData($user_id) {
+    try {
+      $user_url = $this->url . "/users/$user_id.json";
+      $response = $this->getDataFromApiCall($user_url);
+      return !empty($response) ? $response['user']: NULL;
+    }
+    catch (RequestException $e) {
+      echo "Error fetching user $user_id. Reason: {$e->getResponse()->getBody()}\n";
       return FALSE;
     }
   }
