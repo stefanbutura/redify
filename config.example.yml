@@ -1,13 +1,10 @@
-keys:
-  redmine:
-    informea:
-      url: https://support.informea.org
-      api_key: YOUR_API_KEY
-    helpdesk:
-      url: https://helpdesk.eaudeweb.ro
-      api_key: YOUR_API_KEY
-  clockify:
-    workspace_id: CLOCKIFY_WORKSPACE_ID
+redmine:
+  informea:
+    url: https://support.informea.org
+    api_key: YOUR_API_KEY
+  helpdesk:
+    url: https://helpdesk.eaudeweb.ro
+    api_key: YOUR_API_KEY
 
 database:
   database_type: mysql

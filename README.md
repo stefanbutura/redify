@@ -20,6 +20,9 @@ A php tool used to sync time entries between Redmine and Clockify. Time entries 
 
 5. Add the custom field "Clockify project ID" for projects in your Redmine instance. Time entries will only be synced for projects that have this field.
 
+6. Add the custom field "Clockify workspace ID" for projects in your Redmine instance. Time entries will only be synced for projects that have this field.
+
+
 # How to run
 
 `php redify.php`
